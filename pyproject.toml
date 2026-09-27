@@ -1,0 +1,16 @@
+[project]
+name = "simple-rag-streamlit"
+version = "0.1.0"
+description = "Simple RAG PDF chat app built with Streamlit"
+requires-python = ">=3.12"
+dependencies = [
+    "chromadb>=1.5.9",
+    "litellm>=1.102.1",
+    "pypdf>=6.19.0",
+    "requests>=2.34.2",
+    "sentence-transformers>=6.1.0",
+    "streamlit>=1.64.0",
+]
+
+[tool.uv]
+package = false

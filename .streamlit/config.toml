@@ -1,0 +1,8 @@
+# Disables Streamlit's dev file-watcher. It's not needed for app functionality
+# (script reruns on user interaction happen regardless) — it only auto-reruns on
+# source file save. It's disabled here because it scans every imported module's
+# __path__, and touching transformers' lazy-loading module triggers it to try
+# importing an unrelated submodule (zoedepth) that needs torchvision, which this
+# app doesn't use. After editing code, refresh the browser tab to pick up changes.
+[server]
+fileWatcherType = "none"
