@@ -101,6 +101,10 @@ with st.sidebar:
 
     model_string = build_model_string(prefix, model_name) if model_name else None
 
+    # Reserves the visual slot right after Settings; filled in further down (after
+    # ingestion runs) so its live stats reflect this run's uploads, not the previous one's.
+    how_it_works_slot = st.container()
+
     st.divider()
 
     uploaded_files = st.file_uploader(
@@ -126,33 +130,32 @@ with st.sidebar:
 
     st.caption(f"{collection.count()} chunks indexed from {len(st.session_state.ingested_files)} file(s).")
 
-    # Rendered after ingestion above so live stats reflect this run's uploads, not the
-    # previous rerun's state.
-    with st.expander("How This Works", expanded=False):
-        st.markdown(
-            "**Pipeline:** PDF → `pypdf` per-page text extraction → paragraph-aware "
-            "sliding-window chunking → local embeddings → ChromaDB → top-k retrieval → "
-            "cited prompt → LLM via `litellm`. No LangChain."
-        )
-        stats = get_chunk_stats(collection)
-        st.markdown(f"**Chunks indexed:** {stats['total_chunks']} total from {len(stats['files'])} file(s)")
-        if stats["files"]:
-            st.table([
-                {"file": name, "pages": v["pages"], "chunks": v["chunks"]}
-                for name, v in stats["files"].items()
-            ])
-        st.markdown(
-            f"**Chunker:** paragraph-aware sliding window "
-            f"(chunk_size={CHUNK_SIZE} chars, overlap={CHUNK_OVERLAP} chars, never crosses a page)"
-        )
-        st.markdown(
-            f"**Embeddings:** `{EMBED_MODEL_NAME}` (sentence-transformers, "
-            f"{embedder.get_embedding_dimension()} dimensions, computed locally)"
-        )
-        st.markdown(f"**Vector store:** ChromaDB, persistent, collection `session_{st.session_state.session_id}`")
-        st.markdown(f"**Retrieval:** top-{TOP_K} chunks by embedding distance")
-        st.markdown(f"**Current LLM:** {source} / {model_name or '(none selected)'} → `{model_string or '—'}`")
-        st.caption("You can also just ask the chatbot these same questions directly.")
+    with how_it_works_slot:
+        with st.expander("How This Works", expanded=False):
+            st.markdown(
+                "**Pipeline:** PDF → `pypdf` per-page text extraction → paragraph-aware "
+                "sliding-window chunking → local embeddings → ChromaDB → top-k retrieval → "
+                "cited prompt → LLM via `litellm`. No LangChain."
+            )
+            stats = get_chunk_stats(collection)
+            st.markdown(f"**Chunks indexed:** {stats['total_chunks']} total from {len(stats['files'])} file(s)")
+            if stats["files"]:
+                st.table([
+                    {"file": name, "pages": v["pages"], "chunks": v["chunks"]}
+                    for name, v in stats["files"].items()
+                ])
+            st.markdown(
+                f"**Chunker:** paragraph-aware sliding window "
+                f"(chunk_size={CHUNK_SIZE} chars, overlap={CHUNK_OVERLAP} chars, never crosses a page)"
+            )
+            st.markdown(
+                f"**Embeddings:** `{EMBED_MODEL_NAME}` (sentence-transformers, "
+                f"{embedder.get_embedding_dimension()} dimensions, computed locally)"
+            )
+            st.markdown(f"**Vector store:** ChromaDB, persistent, collection `session_{st.session_state.session_id}`")
+            st.markdown(f"**Retrieval:** top-{TOP_K} chunks by embedding distance")
+            st.markdown(f"**Current LLM:** {source} / {model_name or '(none selected)'} → `{model_string or '—'}`")
+            st.caption("You can also just ask the chatbot these same questions directly.")
 
 # ---------------- Main chat area ----------------
 st.title("Simple RAG app")
